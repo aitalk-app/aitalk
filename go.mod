@@ -1,4 +1,4 @@
-module github.com/rest-go/aitalk
+module github.com/aitalk-app/aitalk
 
 go 1.18
 
