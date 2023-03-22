@@ -1,4 +1,4 @@
-module github.com/shellfly/aitalk
+module github.com/rest-go/aitalk
 
 go 1.18
 
