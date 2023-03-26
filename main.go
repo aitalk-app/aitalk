@@ -34,7 +34,7 @@ func main() {
 		roles               roles
 		duration            time.Duration
 	)
-	flag.DurationVar(&duration, "timeout", 2*time.Minute, "timeout for the talk")
+	flag.DurationVar(&duration, "timeout", 5*time.Minute, "timeout for the talk")
 	flag.StringVar(&model, "model", "gpt-3.5-turbo", "model to use")
 	flag.StringVar(&openaiAPIKey, "openai_api_key", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
 	flag.StringVar(&lang, "lang", "en", "language")
@@ -157,7 +157,7 @@ func AIToAI(apiKey, model string, topic, lang string, roles roles, timeout time.
 		select {
 		case <-sigChan:
 		case <-time.After(timeout):
-			fmt.Println("timeout")
+			fmt.Println("[timeout]")
 		}
 
 		os.Stdout.Sync()
@@ -212,7 +212,7 @@ func AIToAI(apiKey, model string, topic, lang string, roles roles, timeout time.
 }
 
 func systemPrompt(role string) string {
-	return fmt.Sprintf("From now on, we will have a debate. Your viewpoint is that %s. You must stick to your viewpoint and never agreeing with mine. do NOT say 'I understand on your point'", role)
+	return fmt.Sprintf("From now on, we will have a debate. Your viewpoint is that %s. You must stick to your viewpoint and never agreeing with mine. do NOT say 'I understand on your point', limit up to 100 words for every reply", role)
 }
 
 func topicPrompt(topic string) string {

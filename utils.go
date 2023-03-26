@@ -22,7 +22,7 @@ func makeDir(dirName string) string {
 func printReply(text string) {
 	for _, char := range text {
 		fmt.Print(string(char))
-		time.Sleep(time.Duration(rand.Intn(50)+50) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(42)+42) * time.Millisecond)
 	}
 	fmt.Println()
 }
