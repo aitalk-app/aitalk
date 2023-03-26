@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -112,11 +111,11 @@ func AIToHuman(apiKey, model, topic, lang string, roles roles) {
 		spinnerA.Stop()
 		fmt.Println(replyA)
 		fmt.Println()
-		discussions = append(discussions, "AI: \n"+replyA)
+		discussions = append(discussions, "AI: "+replyA)
 
 		fmt.Println(color.Green("You:"))
 		input, _ := reader.ReadString('\n')
-		discussions = append(discussions, "You: \n"+input)
+		discussions = append(discussions, "You: "+input)
 
 		promptsA = []string{input}
 	}
@@ -192,7 +191,7 @@ func AIToAI(apiKey, model string, topic, lang string, roles roles, timeout time.
 			return
 		}
 		spinnerA.Stop()
-		discussions = append(discussions, "A: \n"+replyA)
+		discussions = append(discussions, "A: "+replyA)
 		printReply(replyA)
 
 		promptsB = []string{topicPrompt(topic), replyA}
@@ -204,7 +203,7 @@ func AIToAI(apiKey, model string, topic, lang string, roles roles, timeout time.
 			fmt.Println("failed to get reply from B: ", err)
 			return
 		}
-		discussions = append(discussions, "B: \n"+replyB)
+		discussions = append(discussions, "B: "+replyB)
 		printReply(replyB)
 
 		promptsA = []string{replyB}
@@ -225,12 +224,4 @@ func usageExit() {
 	fmt.Println("aitalk -topic {topic}")
 	fmt.Println("aitalk -topic {topic} -role '{role description}' -role '{role description}'")
 	os.Exit(0)
-}
-
-func printReply(text string) {
-	for _, char := range text {
-		fmt.Print(string(char))
-		time.Sleep(time.Duration(rand.Intn(50)+50) * time.Millisecond)
-	}
-	fmt.Println()
 }
