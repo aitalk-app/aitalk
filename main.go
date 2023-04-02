@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -30,14 +30,20 @@ func main() {
 		lang, topic         string
 		roles               roles
 		duration            time.Duration
+		version             bool
 	)
 	flag.DurationVar(&duration, "timeout", 5*time.Minute, "timeout for the talk")
 	flag.StringVar(&model, "model", "gpt-3.5-turbo", "model to use")
 	flag.StringVar(&openaiAPIKey, "openai_api_key", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
-	flag.StringVar(&lang, "lang", "", "language")
+	flag.StringVar(&lang, "lang", "en", "language")
 	flag.StringVar(&topic, "topic", "", "topic")
+	flag.BoolVar(&version, "version", false, "topic")
 	flag.Var(&roles, "role", "list of roles")
 	flag.Parse()
+	if version {
+		fmt.Println(userAgent())
+		return
+	}
 	if topic == "" {
 		usageExit()
 	}
@@ -70,74 +76,65 @@ func main() {
 		usageExit()
 	}
 
-	outputDir := makeDir("talks")
-	discussions := []string{}
-	filename := topic + ".txt"
-	path := filepath.Join(outputDir, filename)
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Println("failed to open ", filename, err)
-		return
+	ctx, cancel := context.WithCancel(context.Background())
+	if B.IsAI() {
+		ctx, cancel = context.WithTimeout(ctx, duration)
 	}
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
-	defer signal.Reset(os.Interrupt)
+	defer signal.Reset()
 	go func() {
-		if B.IsAI() {
-			select {
-			case <-sigChan:
-			case <-time.After(duration):
-				fmt.Println("[timeout]")
-			}
-		} else {
-			<-sigChan
-		}
-		if len(discussions) == 0 {
-			return
-		}
-
-		_, _ = f.WriteString(strings.Join(discussions, "\n\n"))
-		f.Close()
-		fmt.Println("The output is saved in ", path)
-		os.Exit(0)
+		<-sigChan
+		cancel()
 	}()
-
-	fmt.Printf("topic: %s\n", topic)
-	if A.IsAI() && B.IsAI() {
-		fmt.Printf("A: %s\n", roles[0])
-		fmt.Printf("B: %s\n", roles[1])
-	}
 
 	var (
 		promptsA, promptsB []string
 		replyA, replyB     string
 	)
 	promptsA = []string{topic}
+	discussions := []string{}
+loop:
 	for {
 		fmt.Println(color.Yellow(A.Name() + ":"))
 		replyA, err = A.Query(promptsA)
 		if err != nil {
-			fmt.Println("failed to get reply from A: ", err)
 			return
 		}
-		fmt.Println(strings.TrimSpace(replyA))
-		fmt.Println()
 		discussions = append(discussions, A.Name()+": "+strings.TrimSpace(replyA))
+		select {
+		case <-ctx.Done():
+			if ctx.Err() == context.DeadlineExceeded {
+				fmt.Println("[timed out]")
+			}
+			break loop
+		default:
+		}
 
 		fmt.Println(color.Green(B.Name() + ":"))
 		replyB, err = B.Query(promptsB)
 		if err != nil {
-			fmt.Println("failed to get reply from B: ", err)
 			return
 		}
-		if B.IsAI() {
-			fmt.Println(strings.TrimSpace(replyB))
-		}
-		fmt.Println()
 		discussions = append(discussions, B.Name()+": "+strings.TrimSpace(replyB))
+		select {
+		case <-ctx.Done():
+			if ctx.Err() == context.DeadlineExceeded {
+				fmt.Println("[timed out]")
+			}
+			break loop
+		default:
+		}
 
 		promptsA = []string{replyB}
 	}
+
+	content := strings.Join(discussions, "\n\n")
+	if content == "" {
+		return
+	}
+	saveTalk(topic, content)
+	uploadTalk(model, topic, lang, content, roles)
 }
 
 func systemPrompt(role, lang string) string {
@@ -148,10 +145,6 @@ func systemPrompt(role, lang string) string {
 	}
 	return system
 }
-
-// func topicPrompt(topic string) string {
-// 	return fmt.Sprintf(`I want to discuss with you on "%s".`, topic)
-// }
 
 func usageExit() {
 	fmt.Println("Usage:")

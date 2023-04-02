@@ -2,7 +2,10 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -49,9 +52,20 @@ func (i *AI) SetRole(role string) {
 
 func (i *AI) Query(prompts []string) (string, error) {
 	i.spinner.Start()
-	defer i.spinner.Stop()
-
-	return i.ai.Query(prompts)
+	reply, err := i.ai.Query(prompts)
+	i.spinner.Stop()
+	if err != nil {
+		fmt.Println("failed to get reply from A: ", err)
+		return "", err
+	}
+	reply = strings.TrimSpace(reply)
+	for _, char := range reply {
+		fmt.Print(string(char))
+		time.Sleep(time.Duration(rand.Intn(42)+42) * time.Millisecond)
+	}
+	fmt.Println()
+	fmt.Println()
+	return reply, err
 }
 
 type Human struct {
@@ -70,6 +84,11 @@ func (i *Human) SetRole(string) {}
 
 func (i *Human) Query(prompts []string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-
-	return reader.ReadString('\n')
+	reply, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("failed to get input: ", err)
+		return "", err
+	}
+	fmt.Println()
+	return reply, err
 }

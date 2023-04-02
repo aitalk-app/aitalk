@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func makeDir(dirName string) string {
@@ -19,10 +17,16 @@ func makeDir(dirName string) string {
 	return dirName
 }
 
-func printReply(text string) {
-	for _, char := range text {
-		fmt.Print(string(char))
-		time.Sleep(time.Duration(rand.Intn(42)+42) * time.Millisecond)
+func saveTalk(topic, content string) {
+	outputDir := makeDir("talks")
+	filename := topic + ".txt"
+	path := filepath.Join(outputDir, filename)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		fmt.Println("failed to open file to save content ", filename, err)
+		return
 	}
-	fmt.Println()
+	defer f.Close()
+	_, _ = f.WriteString(content)
+	fmt.Println("The output is saved in ", path)
 }
