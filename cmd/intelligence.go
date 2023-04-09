@@ -13,7 +13,7 @@ import (
 	"github.com/shellfly/aoi/pkg/chatgpt"
 )
 
-type Intelligent interface {
+type Intelligence interface {
 	Name() string
 	SetRole(string)
 	Query(context.Context, []string) (string, error)

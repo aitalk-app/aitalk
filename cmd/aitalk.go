@@ -46,6 +46,7 @@ func init() {
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(authCmd)
+	rootCmd.AddCommand(langCmd)
 	rootCmd.AddCommand(uploadCmd)
 }
 
@@ -83,7 +84,7 @@ func main(cmd *cobra.Command, args []string) {
 	}
 
 	var (
-		A, B Intelligent
+		A, B Intelligence
 		err  error
 	)
 	if len(Roles) == 0 {
@@ -136,7 +137,7 @@ loop:
 			return
 		}
 		if replyA != "" {
-			// when  ctrl-c replyB could be empty
+			// when ctrl-c replyA could be empty
 			discussions = append(discussions, A.Name()+": "+strings.TrimSpace(replyA))
 		}
 		select {
@@ -154,7 +155,7 @@ loop:
 			return
 		}
 		if replyB != "" {
-			// when  ctrl-c replyB could be empty
+			// when ctrl-c replyB could be empty
 			discussions = append(discussions, B.Name()+": "+strings.TrimSpace(replyB))
 		}
 		select {

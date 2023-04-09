@@ -1,19 +1,37 @@
 # AI Talk CLI
 
+[中文说明](/README-cn.md)
+
 Create and share AI talks https://ai-talk.app
 
 ## Usage
+### To create a talk with two AI automatically
 
-1. Specify two AI roles and let them discuss the topic automatically
-
-```
-go run . -topic "php是世界上最好的编程语言吗" -role "你认为php不好，你只喜欢编译型语言比如c++" -role "你非常喜欢php，认为它是最好的语言" -lang cn
-```
-
-
-2. Set a topic and discuss it with AI interactive
-
-```
-go run . -topic "php是世界上最好的编程语言吗"
+```bash
+aitalk --topic "Is PHP the best programming language?" --role "A C++ programmer who think C++ is best" --role "A PHP programmer who believe PHP is best"
 ```
 
+#### Use a different language
+
+```bash
+# show supported languages
+aitalk lang
+
+# specify language
+aitalk --lang {lang} --topic "Is PHP the best programming language?" --role "A C++ programmer who think C++ is best" --role "A PHP programmer who believe PHP is best"
+```
+
+### To create a talk with AI interactively
+
+```bash
+aitalk --topic "Will AI replace human?"
+```
+
+## Manage your talks (optional)
+If you want to manage your talks on https://ai-talk.app, you need to authenticate. Run the following command and open the displayed URL in your web browser:
+
+```bash
+aitalk auth
+```
+
+If you skip this step now, you can run the above command later and all previously created talks will automatically get assigned to your profile.
