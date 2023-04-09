@@ -104,17 +104,21 @@ func (i *Human) Query(ctx context.Context, prompts []string) (reply string, err 
 	go func() {
 		for reply == "" {
 			reply, err = reader.ReadString('\n')
+			select {
+			case <-ctx.Done():
+				if err == nil {
+					GlobalInputCh <- reply
+				} else {
+					GlobalInputErrCh <- err
+				}
+				return
+			default:
+			}
 			if err != nil {
 				errCh <- err
 				return
 			}
-			fmt.Println("ge t reply:", reply)
-			select {
-			case <-ctx.Done():
-				_ = reader.UnreadByte()
-				return
-			default:
-			}
+
 			reply = strings.TrimSpace(reply)
 		}
 

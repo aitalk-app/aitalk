@@ -15,6 +15,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: remove this ugly global channel
+var (
+	GlobalInputCh    = make(chan string, 1)
+	GlobalInputErrCh = make(chan error, 1)
+)
+
 var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "upload a talk",
@@ -149,11 +155,25 @@ type CreateResp struct {
 func uploadTalk(model, lang string, roles roles, topic, content string, confirm bool) {
 	if confirm {
 		printInfo("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
-		reader := bufio.NewReader(os.Stdin)
-		_, err := reader.ReadString('\n')
-		if err != nil {
-			return
+		errCh := make(chan error, 1)
+		go func() {
+			reader := bufio.NewReader(os.Stdin)
+			_, err := reader.ReadString('\n')
+			errCh <- err
+		}()
+
+		select {
+		case err := <-errCh:
+			if err != nil {
+				return
+			}
+		case err := <-GlobalInputErrCh:
+			if err != nil {
+				return
+			}
+		case <-GlobalInputCh:
 		}
+
 	}
 	var roleA, roleB string
 	if len(roles) > 0 {
