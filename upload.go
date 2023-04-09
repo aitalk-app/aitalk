@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	HOST      = "https://ai-talk.app"
-	TalkURL   = HOST + "/talks/%d"
-	UploadAPI = HOST + "/api/talks/upload"
+	TalkURL   = "https://ai-talk.app/talks/%d"
+	UploadAPI = "https://ai-talk.app/api/talks/upload"
 )
 
 func getInstallID() string {
@@ -75,8 +74,8 @@ type CreateResp struct {
 	Data TalkCreateResp `json:"data"`
 }
 
-func uploadTalk(model, topic, lang, content string, roles roles) {
-	fmt.Println("press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
+func uploadTalk(model, lang string, roles roles, topic, content string) {
+	fmt.Println("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
 	reader := bufio.NewReader(os.Stdin)
 	_, err := reader.ReadString('\n')
 	if err != nil {
@@ -100,6 +99,7 @@ func uploadTalk(model, topic, lang, content string, roles roles) {
 		fmt.Println("Marshal request error: ", err)
 		return
 	}
+	fmt.Println("Uploading...")
 	req, err := http.NewRequest("POST", UploadAPI, bytes.NewBuffer(b))
 	if err != nil {
 		fmt.Println("Create request error: ", err)

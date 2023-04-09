@@ -25,8 +25,8 @@ type AI struct {
 	spinner *spinner.Spinner
 }
 
-func NewAI(name, apiKey, model string) (*AI, error) {
-	bot, err := chatgpt.NewAI("", apiKey, model)
+func NewAI(name, host, apiKey, model string) (*AI, error) {
+	bot, err := chatgpt.NewAI(host, apiKey, model)
 	if err != nil {
 		return nil, err
 	}
@@ -55,13 +55,13 @@ func (i *AI) Query(prompts []string) (string, error) {
 	reply, err := i.ai.Query(prompts)
 	i.spinner.Stop()
 	if err != nil {
-		fmt.Println("failed to get reply from A: ", err)
+		fmt.Println("failed to get reply: ", err)
 		return "", err
 	}
 	reply = strings.TrimSpace(reply)
 	for _, char := range reply {
 		fmt.Print(string(char))
-		time.Sleep(time.Duration(rand.Intn(42)+42) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(42)+10) * time.Millisecond)
 	}
 	fmt.Println()
 	fmt.Println()

@@ -13,6 +13,14 @@ import (
 	"github.com/shellfly/aoi/pkg/command"
 )
 
+const NAME = "aitalk"
+
+var VERSION = "0.1.0"
+
+func userAgent() string {
+	return fmt.Sprintf("%s/%s", NAME, VERSION)
+}
+
 type roles []string
 
 func (rs *roles) String() string {
@@ -26,19 +34,20 @@ func (rs *roles) Set(value string) error {
 
 func main() {
 	var (
-		model, openaiAPIKey string
-		lang, topic         string
-		roles               roles
-		duration            time.Duration
-		version             bool
+		openaiAPIHost, openaiAPIKey, model string
+		lang, topic                        string
+		roles                              roles
+		duration                           time.Duration
+		version                            bool
 	)
-	flag.DurationVar(&duration, "timeout", 5*time.Minute, "timeout for the talk")
-	flag.StringVar(&model, "model", "gpt-3.5-turbo", "model to use")
+	flag.StringVar(&openaiAPIHost, "openai_api_host", os.Getenv("OPENAI_API_HOST"), "OpenAI API host")
 	flag.StringVar(&openaiAPIKey, "openai_api_key", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
+	flag.StringVar(&model, "model", "gpt-3.5-turbo", "model to use")
 	flag.StringVar(&lang, "lang", "en", "language")
 	flag.StringVar(&topic, "topic", "", "topic")
 	flag.BoolVar(&version, "version", false, "topic")
 	flag.Var(&roles, "role", "list of roles")
+	flag.DurationVar(&duration, "timeout", 5*time.Minute, "timeout for the talk")
 	flag.Parse()
 	if version {
 		fmt.Println(userAgent())
@@ -53,20 +62,20 @@ func main() {
 		err  error
 	)
 	if len(roles) == 0 {
-		A, err = NewAI("AI", openaiAPIKey, model)
+		A, err = NewAI("AI", openaiAPIHost, openaiAPIKey, model)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 		B = &Human{name: "You"}
 	} else if len(roles) == 2 {
-		A, err = NewAI("A", openaiAPIKey, model)
+		A, err = NewAI("A", openaiAPIHost, openaiAPIKey, model)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 		A.SetRole(systemPrompt(roles[0], lang))
-		B, err = NewAI("B", openaiAPIKey, model)
+		B, err = NewAI("B", openaiAPIHost, openaiAPIKey, model)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -133,8 +142,8 @@ loop:
 	if content == "" {
 		return
 	}
-	saveTalk(topic, content)
-	uploadTalk(model, topic, lang, content, roles)
+	saveTalk(model, lang, roles, topic, content)
+	uploadTalk(model, lang, roles, topic, content)
 }
 
 func systemPrompt(role, lang string) string {
