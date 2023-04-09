@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/shellfly/aoi/pkg/color"
 )
 
 const FileHeader = `...
@@ -28,9 +30,15 @@ func makeDir(dirName string) string {
 
 func saveTalk(model, lang string, roles roles, topic, content string) {
 	outputDir := makeDir("talks")
-	filename := strings.ReplaceAll(strings.ToLower(topic), " ", "_")
-	path := filepath.Join(outputDir, filename) + ".txt"
-	if _, err := os.Stat(path); err == nil {
+	topicSlug := strings.ReplaceAll(strings.ToLower(topic), " ", "_")
+	filename := topicSlug
+	var path string
+	for {
+		path = filepath.Join(outputDir, filename) + ".txt"
+		if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
+			break
+		}
+
 		// file existed
 		number := 2
 		parts := strings.Split(filename, "_")
@@ -38,12 +46,12 @@ func saveTalk(model, lang string, roles roles, topic, content string) {
 		if err == nil {
 			number = oldNumber + 1
 		}
-		path = filepath.Join(outputDir, fmt.Sprintf("%s_%d", filename, number)) + ".txt"
+		filename = fmt.Sprintf("%s_%d", topicSlug, number)
 	}
 
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Println("failed to open file to save content ", filename, err)
+		printInfo("failed to open file to save content %s, %v", filename, err)
 		return
 	}
 	defer f.Close()
@@ -53,5 +61,9 @@ func saveTalk(model, lang string, roles roles, topic, content string) {
 	}
 	_, _ = f.WriteString(fmt.Sprintf(FileHeader, header))
 	_, _ = f.WriteString(content)
-	fmt.Println("The output is saved in ", path)
+	printInfo("The output is saved in %s", path)
+}
+
+func printInfo(f string, args ...any) {
+	fmt.Println(color.Green(fmt.Sprintf(f, args...)))
 }

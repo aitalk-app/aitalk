@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bufio"
@@ -11,11 +11,26 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/spf13/cobra"
 )
 
+var uploadCmd = &cobra.Command{
+	Use:   "upload",
+	Short: "upload a talk",
+	Run: func(cmd *cobra.Command, args []string) {
+		upload()
+	},
+}
+
+func upload() {
+	fmt.Println("upload")
+}
+
 const (
-	TalkURL   = "https://ai-talk.app/talks/%d"
-	UploadAPI = "https://ai-talk.app/api/talks/upload"
+	HOST       = "https://ai-talk.app"
+	ConnectURL = HOST + "/connect?install_id=%s"
+	TalkURL    = HOST + "/talks/%d"
+	UploadAPI  = HOST + "/api/talks/upload"
 )
 
 func getInstallID() string {
@@ -75,7 +90,7 @@ type CreateResp struct {
 }
 
 func uploadTalk(model, lang string, roles roles, topic, content string) {
-	fmt.Println("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
+	printInfo("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
 	reader := bufio.NewReader(os.Stdin)
 	_, err := reader.ReadString('\n')
 	if err != nil {
@@ -96,13 +111,13 @@ func uploadTalk(model, lang string, roles roles, topic, content string) {
 	}
 	b, err := json.Marshal(data)
 	if err != nil {
-		fmt.Println("Marshal request error: ", err)
+		printInfo("Marshal request error: %v", err)
 		return
 	}
-	fmt.Println("Uploading...")
+	printInfo("Uploading...")
 	req, err := http.NewRequest("POST", UploadAPI, bytes.NewBuffer(b))
 	if err != nil {
-		fmt.Println("Create request error: ", err)
+		printInfo("Create request error: %v", err)
 		return
 	}
 	req.Header.Set("User-Agent", userAgent())
@@ -113,16 +128,16 @@ func uploadTalk(model, lang string, roles roles, topic, content string) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Send request error: ", err)
+		printInfo("Send request error: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 	var createResp CreateResp
 	err = json.NewDecoder(resp.Body).Decode(&createResp)
 	if err != nil {
-		fmt.Println("Decode response error:", err)
+		printInfo("Decode response error: %v", err)
 		return
 	}
-	fmt.Println("Uploaded success, view the talk at:")
-	fmt.Println("    " + fmt.Sprintf(TalkURL, createResp.Data.ID))
+	printInfo("Uploaded success, view the talk at:")
+	printInfo("    " + fmt.Sprintf(TalkURL, createResp.Data.ID))
 }
