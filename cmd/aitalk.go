@@ -42,7 +42,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&OpenaiAPIHost, "openai_api_host", "", os.Getenv("OPENAI_API_HOST"), "OpenAI API host")
 	rootCmd.Flags().StringVarP(&OpenaiAPIKey, "openai_api_key", "", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
 	rootCmd.Flags().VarP(&Roles, "role", "", "list of roles")
-	rootCmd.Flags().DurationVarP(&Duration, "timeout", "", 5*time.Minute, "timeout for the talk")
+	rootCmd.Flags().DurationVarP(&Duration, "timeout", "", 10*time.Minute, "timeout for the talk")
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(authCmd)
@@ -134,7 +134,7 @@ loop:
 		fmt.Println(color.Yellow(A.Name() + ":"))
 		replyA, err = A.Query(ctx, promptsA)
 		if err != nil {
-			return
+			break loop
 		}
 		if replyA != "" {
 			// when ctrl-c replyA could be empty
@@ -152,7 +152,7 @@ loop:
 		fmt.Println(color.Green(B.Name() + ":"))
 		replyB, err = B.Query(ctx, promptsB)
 		if err != nil {
-			return
+			break loop
 		}
 		if replyB != "" {
 			// when ctrl-c replyB could be empty

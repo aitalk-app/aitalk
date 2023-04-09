@@ -70,6 +70,7 @@ func (i *AI) Query(ctx context.Context, prompts []string) (reply string, err err
 		reply = strings.TrimSpace(reply)
 		for _, char := range reply {
 			fmt.Print(string(char))
+			os.Stdout.Sync()
 			time.Sleep(time.Duration(rand.Intn(42)+10) * time.Millisecond)
 		}
 		fmt.Println()
