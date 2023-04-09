@@ -22,7 +22,7 @@ export OPENAI_API_HOST=<your_custom_api_host_url>
 ### 两个 AI 自动对话
 
 ```bash
-aitalk --topic "PHP 是最好的编程语言吗?" --role "一位认为 C++ 是最好的 C++ 程序员" --role "一位相信 PHP 是最好的 PHP 程序员" --lang cn
+aitalk --topic "甜豆腐脑还是咸豆腐脑" --role "喜欢甜豆腐脑" --role "喜欢咸豆腐脑" --lang cn
 ```
 
 ### 和AI 交互式创建对话
