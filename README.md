@@ -4,6 +4,23 @@
 
 Create and share AI talks https://ai-talk.app
 
+## Install
+You can download `aitalk` from the GitHub [release page](https://github.com/aitalk-app/aitalk/releases). Alternatively, you can use Go to install `aitalk` on your system:
+
+```bash
+go install github.com/aitalk-app/aitalk@latest
+```
+
+Set your OpenAI API key as an environment variable.
+
+
+```bash
+export OPENAI_API_KEY=<your_api_key>
+
+# Set a custom OpenAI API host url if needed
+export OPENAI_API_HOST=<your_custom_api_host_url>
+```
+
 ## Usage
 ### To create a talk with two AI automatically
 
