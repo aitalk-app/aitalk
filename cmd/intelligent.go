@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"math/rand"
 	"os"
@@ -15,7 +16,7 @@ import (
 type Intelligent interface {
 	Name() string
 	SetRole(string)
-	Query([]string) (string, error)
+	Query(context.Context, []string) (string, error)
 	IsAI() bool
 }
 
@@ -50,21 +51,35 @@ func (i *AI) SetRole(role string) {
 	i.ai.SetSystem(role)
 }
 
-func (i *AI) Query(prompts []string) (string, error) {
+func (i *AI) Query(ctx context.Context, prompts []string) (reply string, err error) {
 	i.spinner.Start()
-	reply, err := i.ai.Query(prompts)
-	i.spinner.Stop()
-	if err != nil {
+	replyCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	go func() {
+		defer i.spinner.Stop()
+		reply, err := i.ai.Query(prompts)
+		if err != nil {
+			errCh <- err
+			return
+		}
+		replyCh <- reply
+	}()
+
+	select {
+	case reply = <-replyCh:
+		reply = strings.TrimSpace(reply)
+		for _, char := range reply {
+			fmt.Print(string(char))
+			time.Sleep(time.Duration(rand.Intn(42)+10) * time.Millisecond)
+		}
+		fmt.Println()
+		fmt.Println()
+	case err = <-errCh:
 		fmt.Println("failed to get reply: ", err)
-		return "", err
+	case <-ctx.Done():
+		i.spinner.Stop()
 	}
-	reply = strings.TrimSpace(reply)
-	for _, char := range reply {
-		fmt.Print(string(char))
-		time.Sleep(time.Duration(rand.Intn(42)+10) * time.Millisecond)
-	}
-	fmt.Println()
-	fmt.Println()
+
 	return reply, err
 }
 
@@ -82,13 +97,37 @@ func (i *Human) IsAI() bool {
 
 func (i *Human) SetRole(string) {}
 
-func (i *Human) Query(prompts []string) (string, error) {
+func (i *Human) Query(ctx context.Context, prompts []string) (reply string, err error) {
+	replyCh := make(chan string, 1)
+	errCh := make(chan error, 1)
 	reader := bufio.NewReader(os.Stdin)
-	reply, err := reader.ReadString('\n')
-	if err != nil {
+	go func() {
+		for reply == "" {
+			reply, err = reader.ReadString('\n')
+			if err != nil {
+				errCh <- err
+				return
+			}
+			fmt.Println("ge t reply:", reply)
+			select {
+			case <-ctx.Done():
+				_ = reader.UnreadByte()
+				return
+			default:
+			}
+			reply = strings.TrimSpace(reply)
+		}
+
+		replyCh <- reply
+	}()
+
+	select {
+	case reply = <-replyCh:
+		fmt.Println()
+	case err = <-errCh:
 		fmt.Println("failed to get input: ", err)
-		return "", err
+	case <-ctx.Done():
 	}
-	fmt.Println()
+
 	return reply, err
 }

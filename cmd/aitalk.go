@@ -131,11 +131,14 @@ func main(cmd *cobra.Command, args []string) {
 loop:
 	for {
 		fmt.Println(color.Yellow(A.Name() + ":"))
-		replyA, err = A.Query(promptsA)
+		replyA, err = A.Query(ctx, promptsA)
 		if err != nil {
 			return
 		}
-		discussions = append(discussions, A.Name()+": "+strings.TrimSpace(replyA))
+		if replyA != "" {
+			// when  ctrl-c replyB could be empty
+			discussions = append(discussions, A.Name()+": "+strings.TrimSpace(replyA))
+		}
 		select {
 		case <-ctx.Done():
 			if ctx.Err() == context.DeadlineExceeded {
@@ -146,11 +149,14 @@ loop:
 		}
 
 		fmt.Println(color.Green(B.Name() + ":"))
-		replyB, err = B.Query(promptsB)
+		replyB, err = B.Query(ctx, promptsB)
 		if err != nil {
 			return
 		}
-		discussions = append(discussions, B.Name()+": "+strings.TrimSpace(replyB))
+		if replyB != "" {
+			// when  ctrl-c replyB could be empty
+			discussions = append(discussions, B.Name()+": "+strings.TrimSpace(replyB))
+		}
 		select {
 		case <-ctx.Done():
 			if ctx.Err() == context.DeadlineExceeded {
@@ -168,7 +174,7 @@ loop:
 		return
 	}
 	saveTalk(Model, Lang, Roles, Topic, content)
-	uploadTalk(Model, Lang, Roles, Topic, content)
+	uploadTalk(Model, Lang, Roles, Topic, content, true)
 }
 
 func systemPrompt(role, lang string) string {

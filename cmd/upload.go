@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,13 +18,65 @@ import (
 var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "upload a talk",
+	Args: func(cmd *cobra.Command, args []string) error {
+		// Optionally run one of the validators provided by cobra
+		return cobra.MinimumNArgs(1)(cmd, args)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		upload()
+		upload(cmd, args)
 	},
 }
 
-func upload() {
-	fmt.Println("upload")
+func upload(cmd *cobra.Command, args []string) {
+	for _, f := range args {
+		uploadFile(f)
+	}
+}
+func uploadFile(f string) {
+	fmt.Printf("Uploading talk %s...\n", f)
+	dat, err := os.ReadFile(f)
+	if err != nil {
+		fmt.Println("open file error: ", err)
+		return
+	}
+	content := string(dat)
+	parts := strings.SplitN(content, "...\n\n", 2)
+	if len(parts) != 2 {
+		fmt.Println("invalid file content")
+		return
+	}
+	headers := parts[0]
+	content = strings.TrimSpace(parts[1])
+	var (
+		model, lang, topic string
+		roles              roles
+	)
+	for _, header := range strings.Split(headers, "\n") {
+		header = strings.TrimSpace(header)
+		if header == "..." {
+			continue
+		}
+		headerParts := strings.Split(header, ":")
+		if len(headerParts) != 2 {
+			continue
+		}
+		name := headerParts[0]
+		value := headerParts[1]
+		switch name {
+		case "model":
+			model = value
+		case "lang":
+			lang = value
+		case "topic":
+			topic = value
+		case "A":
+			fallthrough
+		case "B":
+			roles = append(roles, value)
+		}
+	}
+
+	uploadTalk(model, lang, roles, topic, content, false)
 }
 
 const (
@@ -43,6 +96,7 @@ func getInstallID() string {
 	var installID string
 	filepath := filepath.Join(dir, "install_id")
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		// create a new install id
 		file, err := os.Create(filepath)
 		if err != nil {
 			fmt.Println(err)
@@ -62,7 +116,8 @@ func getInstallID() string {
 		return ""
 	}
 
-	b, err := os.ReadFile(filepath) // just pass the file name
+	// read existed install id
+	b, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -86,19 +141,26 @@ type TalkCreateResp struct {
 }
 
 type CreateResp struct {
+	Code int            `json:"code"`
+	Msg  string         `json:"msg"`
 	Data TalkCreateResp `json:"data"`
 }
 
-func uploadTalk(model, lang string, roles roles, topic, content string) {
-	printInfo("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
-	reader := bufio.NewReader(os.Stdin)
-	_, err := reader.ReadString('\n')
-	if err != nil {
-		return
+func uploadTalk(model, lang string, roles roles, topic, content string, confirm bool) {
+	if confirm {
+		printInfo("Press <enter> to upload to https://ai-talk.app, <ctrl-d> to save locally")
+		reader := bufio.NewReader(os.Stdin)
+		_, err := reader.ReadString('\n')
+		if err != nil {
+			return
+		}
 	}
 	var roleA, roleB string
 	if len(roles) > 0 {
 		roleA, roleB = roles[0], roles[1]
+	} else {
+		roleA = "AI"
+		roleB = "You"
 	}
 	data := UploadTalkReq{
 		Model:     model,
@@ -138,6 +200,10 @@ func uploadTalk(model, lang string, roles roles, topic, content string) {
 		printInfo("Decode response error: %v", err)
 		return
 	}
-	printInfo("Uploaded success, view the talk at:")
-	printInfo("    " + fmt.Sprintf(TalkURL, createResp.Data.ID))
+	if createResp.Code == 0 {
+		printInfo("Uploaded success, view the talk at:")
+		printInfo("    " + fmt.Sprintf(TalkURL, createResp.Data.ID))
+	} else {
+		printInfo("Uploaded failed: %s", createResp.Msg)
+	}
 }
