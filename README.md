@@ -2,7 +2,7 @@
 
 [中文说明](/README-cn.md)
 
-Create and share AI talks https://ai-talk.app
+Create and share AI talks https://ai-talk.app. A side project of [Aoi](https://github.com/shellfly/aoi)
 
 ## Install
 You can download `aitalk` from the GitHub [release page](https://github.com/aitalk-app/aitalk/releases). Alternatively, you can use Go to install `aitalk` on your system:
