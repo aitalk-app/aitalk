@@ -1,6 +1,8 @@
 # AI Talk CLI
 
-创建并分享 AI 对话 https://ai-talk.app，[Aoi](https://github.com/shellfly/aoi)的一个副产品。
+创建并分享 AI 对话 https://ai-talk.app. 
+
+[Aoi](https://github.com/shellfly/aoi)的一个副产品。
 
 ## 安装
 可以从 GitHub 的[发布页面](https://github.com/aitalk-app/aitalk/releases)下载`aitalk`。或者，可以使用 Go 在系统上安装`aitalk`：
