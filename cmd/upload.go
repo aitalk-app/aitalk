@@ -22,8 +22,8 @@ var (
 )
 
 var uploadCmd = &cobra.Command{
-	Use:   "upload",
-	Short: "upload a talk",
+	Use:   "upload <file path>",
+	Short: "upload a talk in saved file",
 	Args: func(cmd *cobra.Command, args []string) error {
 		// Optionally run one of the validators provided by cobra
 		return cobra.MinimumNArgs(1)(cmd, args)
