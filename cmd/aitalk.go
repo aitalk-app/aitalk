@@ -38,7 +38,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&Version, "version", "v", false, "print version")
 	rootCmd.Flags().StringVarP(&Topic, "topic", "", "", "topic (required)")
 	rootCmd.Flags().StringVarP(&Model, "model", "", "gpt-3.5-turbo", "model to use")
-	rootCmd.Flags().StringVarP(&Lang, "lang", "", "en", "language")
+	rootCmd.Flags().StringVarP(&Lang, "lang", "", "", "language")
 	rootCmd.Flags().StringVarP(&OpenaiAPIHost, "openai_api_host", "", os.Getenv("OPENAI_API_HOST"), "OpenAI API host")
 	rootCmd.Flags().StringVarP(&OpenaiAPIKey, "openai_api_key", "", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
 	rootCmd.Flags().VarP(&Roles, "role", "", "list of roles")

@@ -182,6 +182,9 @@ func uploadTalk(model, lang string, roles roles, topic, content string, confirm 
 		roleA = "AI"
 		roleB = "You"
 	}
+	if lang == "" {
+		lang = "-"
+	}
 	data := UploadTalkReq{
 		Model:     model,
 		Topic:     topic,
