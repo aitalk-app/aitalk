@@ -150,6 +150,7 @@ loop:
 		}
 
 		fmt.Println(color.Green(B.Name() + ":"))
+		promptsB = []string{replyA}
 		replyB, err = B.Query(ctx, promptsB)
 		if err != nil {
 			break loop
@@ -179,7 +180,7 @@ loop:
 }
 
 func systemPrompt(role, lang string) string {
-	system := fmt.Sprintf("From now on, we will have a debate. Your viewpoint is that %s. You must stick to your viewpoint and never agreeing with mine. do NOT say 'I understand on your point', limit up to 100 words for every reply", role)
+	system := fmt.Sprintf("Your role is %s. You must stick to your role for every reply, limit up to 100 words for every reply", role)
 	language := command.Languages[lang]
 	if language != "" {
 		system = system + " Please reply in " + language

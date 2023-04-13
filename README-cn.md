@@ -24,7 +24,7 @@ export OPENAI_API_HOST=<your_custom_api_host_url>
 ### 两个 AI 自动对话
 
 ```bash
-aitalk --topic "甜豆腐脑还是咸豆腐脑" --role "认为甜豆腐脑更好" --role "认为咸豆腐脑更好" --lang cn
+aitalk --topic "甜豆腐脑还是咸豆腐脑" --role "说服我甜豆腐脑更好" --role "说服我咸豆腐脑更好" --lang cn
 ```
 
 ### 和AI 交互式创建对话
