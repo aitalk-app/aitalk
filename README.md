@@ -2,7 +2,7 @@
 
 [中文说明](/README-cn.md)
 
-Create and share AI talks https://ai-talk.app. 
+Let two  AI talks automatically.
 
 A side project of [Aoi](https://github.com/shellfly/aoi)
 
